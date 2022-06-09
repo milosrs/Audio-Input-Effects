@@ -10,17 +10,19 @@
 	div#controls div.display { display: block; }
 	#controls { padding-top: 24px;}
 	#effectMix { padding-top: 12px;}
-	#arranger { width:750px; margin: 25px auto}
+	#arranger { 
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		margin-top: 20px;
+	}
 	</style>
 </head>
 <body>
 	<div id="play">
 		<button onclick="onPlay()">Press me to load audio</button>
 	</div>
-	<div id="app" hidden>
-		
-
-	</div>
+	<div id="app" hidden></div>
 </div>
 <!--
       <button onclick="this.innerText = toggleSample();">play</button>
@@ -62,18 +64,14 @@
 			"js/visualizer/matrix4x4.js",
 			"js/visualizer/visualizer.js",
 			"js/visualizer/shader.js",
-			"js/effect.js",
-			"js/waveshaper.js",
-			"js/jungle.js",
 			"js/effects.js",
-			"js/pingpong.js",
-			"js/apollo.js",
+			"js/canvasResizer.js"
 		]
 		var head = document.getElementsByTagName('head')[0];
 		var apphtml = new XMLHttpRequest()
 		apphtml.open("GET", "app.html")
 		apphtml.addEventListener("loadend", function(data) {
-			for(var i = 0; i < scriptLinks.length; i++) {
+			for(var i = 0; i < scriptLinks.length ; i++) {
 				var s = document.createElement("script")
 				s.src = scriptLinks[i]
 				head.appendChild(s)
