@@ -182,7 +182,14 @@ function gotSources(sourceInfos) {
 
 function initAudio() {
     var irRRequest = new XMLHttpRequest();
-    irRRequest.open("GET", "sounds/cardiod-rear-levelled.wav", true);
+    irRRequest.addEventListener('error', function(err) {
+        console.log("Error!: ", err)
+    })
+    irRRequest.addEventListener('load', function(data) {
+        console.log("DATA: ", data)
+    })
+    irRRequest.overrideMimeType('text/plain; charset=x-user-defined')
+    irRRequest.open("GET", "sounds/cardiod-rear-levelled.wav?1234", true);
     irRRequest.responseType = "arraybuffer";
     irRRequest.onload = function() {
         audioContext.decodeAudioData( irRRequest.response, 
@@ -244,9 +251,8 @@ function keyPress(ev) {
     }
 }
 
-window.addEventListener('load', initAudio );
-
-window.addEventListener('keydown', keyPress );
+window.addEventListener('keypress', keyPress)
+initAudio()
 
 function crossfade(value) {
   // equal-power crossfade
