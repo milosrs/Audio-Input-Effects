@@ -71,7 +71,7 @@ function cancelAnalyserUpdates() {
 
 function updateAnalysers(time) {
     analyserView1.doFrequencyAnalysis( analyser1 );
-    
+
     rafID = window.requestAnimationFrame( updateAnalysers );
 }
 
@@ -126,7 +126,7 @@ function gotStream(stream) {
     audioInput.connect(effectInput);
     dryGain.connect(outputMix);
     wetGain.connect(outputMix);
-    outputMix.connect( audioContext.destination);
+    outputMix.connect(audioContext.destination);
     outputMix.connect(analyser2);
     crossfade(1.0);
     cancelAnalyserUpdates();
@@ -142,6 +142,7 @@ function changeInput(){
   var constraints = {
     audio: {
         echoCancellation: true,
+        noiseSuppression: true,
         deviceId: audioSource,
     }
   }
@@ -183,7 +184,7 @@ function initAudio() {
     irRRequest.open("GET", "sounds/cardiod-rear-levelled.wav", true);
     irRRequest.responseType = "arraybuffer";
     irRRequest.onload = function() {
-        audioContext.decodeAudioData( irRRequest.response, 
+        audioContext.decodeAudioData( irRRequest.response,
             function(buffer) { reverbBuffer = buffer; } );
     }
     irRRequest.send();
@@ -206,7 +207,8 @@ function initAudio() {
         var constraints = {
             audio: {
                 echoCancellation: true,
-                deviceId: defaultDevice
+                deviceId: defaultDevice,
+                noiseSuppression: true,
             }
         }
         navigator.mediaDevices.getUserMedia(constraints)
@@ -231,5 +233,3 @@ function crossfade(value) {
   dryGain.gain.value = gain1;
   wetGain.gain.value = gain2;
 }
-
-

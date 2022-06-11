@@ -49,7 +49,7 @@ function create3DDebugContext(context) {
 
 AnalyserView = function(canvasElementID) {
     this.canvasElementID = canvasElementID;
-    
+
     // NOTE: the default value of this needs to match the selected radio button
 
     // This analysis type may be overriden later on if we discover we don't support the right shader features.
@@ -82,42 +82,42 @@ AnalyserView = function(canvasElementID) {
 }
 
 function load3DSonogram( shader ) {
-    this.sonogram3DShader = shader; 
+    this.sonogram3DShader = shader;
 }
 
 AnalyserView.prototype.initGL = function() {
     model = new Matrix4x4();
     view = new Matrix4x4();
     projection = new Matrix4x4();
-    
+
     var sonogram3DWidth = this.sonogram3DWidth;
     var sonogram3DHeight = this.sonogram3DHeight;
     var sonogram3DGeometrySize = this.sonogram3DGeometrySize;
     var backgroundColor = this.backgroundColor;
-    
+
 
 
     var canvas = document.getElementById(this.canvasElementID);
     this.canvas = canvas;
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
     // var gl = create3DDebugContext(canvas.getContext("experimental-webgl"));
     var gl = canvas.getContext("experimental-webgl");
     this.gl = gl;
-    
+
     // If we're missing this shader feature, then we can't do the 3D visualization.
     this.has3DVisualizer = (gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) > 0);
-    
+
     if (!this.has3DVisualizer && this.analysisType == ANALYSISTYPE_3D_SONOGRAM)
         this.analysisType = ANALYSISTYPE_FREQUENCY;
-    
+
     var cameraController = new CameraController(canvas);
     this.cameraController = cameraController;
-    
+
     cameraController.xRot = -30; //-55;
     cameraController.yRot = 0;
     gl.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
@@ -145,7 +145,7 @@ AnalyserView.prototype.initGL = function() {
     // Create the vertices and texture coordinates
     var vbo = gl.createBuffer();
     this.vbo = vbo;
-    
+
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
     gl.bufferData(gl.ARRAY_BUFFER,
         vboTexCoordOffset + texCoords.byteLength,
@@ -183,7 +183,7 @@ AnalyserView.prototype.initGL = function() {
     // Create the vertices and texture coordinates
     var sonogram3DVBO = gl.createBuffer();
     this.sonogram3DVBO = sonogram3DVBO;
-    
+
     gl.bindBuffer(gl.ARRAY_BUFFER, sonogram3DVBO);
     gl.bufferData(gl.ARRAY_BUFFER, vbo3DTexCoordOffset + texCoords.byteLength, gl.STATIC_DRAW);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, vertices);
@@ -192,7 +192,7 @@ AnalyserView.prototype.initGL = function() {
     // Now generate indices
     var sonogram3DNumIndices = (sonogram3DWidth - 1) * (sonogram3DHeight - 1) * 6;
     this.sonogram3DNumIndices = sonogram3DNumIndices;
-    
+
     var indices = new Uint16Array(sonogram3DNumIndices);
     // We need to use TRIANGLES instead of for example TRIANGLE_STRIP
     // because we want to make one draw call instead of hundreds per
@@ -212,7 +212,7 @@ AnalyserView.prototype.initGL = function() {
 
   var sonogram3DIBO = gl.createBuffer();
   this.sonogram3DIBO = sonogram3DIBO;
-  
+
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, sonogram3DIBO);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
   // Note we do not unbind this buffer -- not necessary
@@ -233,11 +233,11 @@ AnalyserView.prototype.initGL = function() {
 AnalyserView.prototype.initByteBuffer = function( analyser ) {
     var gl = this.gl;
     var TEXTURE_HEIGHT = this.TEXTURE_HEIGHT;
-    
+
     if (!this.freqByteData || this.freqByteData.length != analyser.frequencyBinCount) {
         freqByteData = new Uint8Array(analyser.frequencyBinCount);
         this.freqByteData = freqByteData;
-        
+
         // (Re-)Allocate the texture object
         if (this.texture) {
             gl.deleteTexture(this.texture);
@@ -245,7 +245,7 @@ AnalyserView.prototype.initByteBuffer = function( analyser ) {
         }
         var texture = gl.createTexture();
         this.texture = texture;
-        
+
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
@@ -272,15 +272,15 @@ AnalyserView.prototype.analysisType = function() {
 
 AnalyserView.prototype.doFrequencyAnalysis = function( analyser ) {
     var freqByteData = this.freqByteData;
-    
+
     switch(this.analysisType) {
-    case ANALYSISTYPE_FREQUENCY: 
+    case ANALYSISTYPE_FREQUENCY:
         analyser.smoothingTimeConstant = 0.75;
         analyser.getByteFrequencyData(freqByteData);
         break;
 
-    case ANALYSISTYPE_SONOGRAM: 
-    case ANALYSISTYPE_3D_SONOGRAM: 
+    case ANALYSISTYPE_SONOGRAM:
+    case ANALYSISTYPE_3D_SONOGRAM:
         analyser.smoothingTimeConstant = 0.1;
         analyser.getByteFrequencyData(freqByteData);
         break;
@@ -289,8 +289,23 @@ AnalyserView.prototype.doFrequencyAnalysis = function( analyser ) {
         analyser.smoothingTimeConstant = 0.1;
         analyser.getByteTimeDomainData(freqByteData);
         break;
+
+    case ANALYSISTYPE_DECIBEL:
+        analyser.smoothingTimeConstant = 0.1;
+        analyser.getByteFrequencyData(freqByteData)
+        var maxValue = 0
+        for (let i = 0; i < freqByteData.length; i++) {
+            if (freqByteData[i] > maxValue) {
+                maxValue = freqByteData[i]
+            }
+        }
+        var percent = maxValue / 255
+        var referentValue = analyser.minDecibels + ((analyser.maxDecibels - analyser.minDecibels) * percent);
+		var dB = 20 * Math.log(Math.abs(maxValue / Math.abs(referentValue)));
+
+        console.log(dB)
     }
-  
+
     this.drawGL();
 }
 
@@ -309,7 +324,7 @@ AnalyserView.prototype.drawGL = function() {
     var freqByteData = this.freqByteData;
     var texture = this.texture;
     var TEXTURE_HEIGHT = this.TEXTURE_HEIGHT;
-    
+
     var frequencyShader = this.frequencyShader;
     if (!frequencyShader) return;
     var waveformShader = this.waveformShader;
@@ -318,7 +333,7 @@ AnalyserView.prototype.drawGL = function() {
     if (!sonogramShader) return;
     var sonogram3DShader = this.sonogram3DShader;
     if (!sonogram3DShader) return;
-        
+
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     if (this.analysisType != ANALYSISTYPE_SONOGRAM && this.analysisType != ANALYSISTYPE_3D_SONOGRAM) {
@@ -439,4 +454,3 @@ AnalyserView.prototype.drawGL = function() {
     gl.disableVertexAttribArray(vertexLoc);
     gl.disableVertexAttribArray(texCoordLoc);
 }
-
