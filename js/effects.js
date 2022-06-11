@@ -49,12 +49,6 @@ var audioInput = null,
 var rafID = null;
 var analyser1;
 var analyserView1;
-var constraints = 
-{
-  audio: {
-      optional: [{ echoCancellation: false }]
-  }
-};
 
 function convertToMono( input ) {
     var splitter = audioContext.createChannelSplitter(2);
@@ -79,6 +73,10 @@ function updateAnalysers(time) {
     analyserView1.doFrequencyAnalysis( analyser1 );
     
     rafID = window.requestAnimationFrame( updateAnalysers );
+}
+
+function changeAnalysisType(index) {
+    analyserView1.setAnalysisType(index)
 }
 
 var lpInputFilter=null;
@@ -111,26 +109,14 @@ function toggleMono() {
 var useFeedbackReduction = true;
 
 function gotStream(stream) {
-    // Create an AudioNode from the stream.
-//    realAudioInput = audioContext.createMediaStreamSource(stream);
     var input = audioContext.createMediaStreamSource(stream);
-
-/*
-    realAudioInput = audioContext.createBiquadFilter();
-    realAudioInput.frequency.value = 60.0;
-    realAudioInput.type = realAudioInput.NOTCH;
-    realAudioInput.Q = 10.0;
-
-    input.connect( realAudioInput );
-*/
     audioInput = convertToMono( input );
 
     if (useFeedbackReduction) {
         audioInput.connect( createLPInputFilter() );
         audioInput = lpInputFilter;
-        
     }
-    // create mix gain nodes
+
     outputMix = audioContext.createGain();
     dryGain = audioContext.createGain();
     wetGain = audioContext.createGain();
@@ -153,29 +139,39 @@ function changeInput(){
   }
   var audioSelect = document.getElementById("audioinput");
   var audioSource = audioSelect.value;
-  constraints.audio.optional.push({sourceId: audioSource});
+  var constraints = {
+    audio: {
+        echoCancellation: true,
+        deviceId: audioSource,
+    }
+  }
 
-  navigator.getUserMedia(constraints, gotStream, function(e) {
-            alert('Error getting audio');
-            console.log(e);
-        });
+  navigator.mediaDevices.getUserMedia(constraints)
+  .then(gotStream)
+  .catch(function(e) {
+        alert('Error getting audio');
+        console.log(e);
+    });
 }
 
-function gotSources(sourceInfos) {
+function gotSources(deviceInfos) {
+    var defaultInput = ''
     var audioSelect = document.getElementById("audioinput");
-    while (audioSelect.firstChild)
-        audioSelect.removeChild(audioSelect.firstChild);
-
-    for (var i = 0; i != sourceInfos.length; ++i) {
-        var sourceInfo = sourceInfos[i];
-        if (sourceInfo.kind === 'audio') {
+    for (var i = 0; i != deviceInfos.length; ++i) {
+        var sourceInfo = deviceInfos[i];
+        if (sourceInfo.kind === 'audioinput') {
             var option = document.createElement("option");
-            option.value = sourceInfo.id;
+            option.value = sourceInfo.deviceId;
             option.text = sourceInfo.label || 'input ' + (audioSelect.length + 1);
             audioSelect.appendChild(option);
         }
+
+        if (sourceInfo.label.indexOf('default') > -1) {
+            defaultInput = sourceInfo.deviceId
+        }
     }
     audioSelect.onchange = changeInput;
+    return defaultInput
 }
 
 function initAudio() {
@@ -184,7 +180,7 @@ function initAudio() {
         console.log("Error!: ", err)
     })
     irRRequest.overrideMimeType('text/plain; charset=x-user-defined')
-    irRRequest.open("GET", "sounds/cardiod-rear-levelled.wav?1234", true);
+    irRRequest.open("GET", "sounds/cardiod-rear-levelled.wav", true);
     irRRequest.responseType = "arraybuffer";
     irRRequest.onload = function() {
         audioContext.decodeAudioData( irRRequest.response, 
@@ -202,22 +198,27 @@ function initAudio() {
     analyserView1 = new AnalyserView("view1");
     analyserView1.initByteBuffer( analyser1 );
 
-    if (!navigator.getUserMedia)
-        navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    console.log(navigator.mediaDevices.getSupportedConstraints())
 
-    if (!navigator.getUserMedia)
-        return(alert("Error: getUserMedia not supported!"));
-
-    navigator.getUserMedia(constraints, gotStream, function(e) {
+    navigator.mediaDevices.enumerateDevices()
+    .then(function(deviceInfos) {
+        var defaultDevice = gotSources(deviceInfos)
+        var constraints = {
+            audio: {
+                echoCancellation: true,
+                deviceId: defaultDevice
+            }
+        }
+        navigator.mediaDevices.getUserMedia(constraints)
+        .then(gotStream)
+        .catch(function(e) {
             alert('Error getting audio');
             console.log(e);
         });
-
-    if ((typeof MediaStreamTrack === 'undefined')||(!MediaStreamTrack.getSources)){
-        console.log("This browser does not support MediaStreamTrack, so doesn't support selecting sources.\n\nTry Chrome Canary.");
-    } else {
-        MediaStreamTrack.getSources(gotSources);
-    }
+    })
+    .catch(function(err) {
+        console.log("Error enumerating devices: ", err)
+    })
 }
 
 initAudio()

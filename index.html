@@ -64,19 +64,31 @@
 			"js/visualizer/matrix4x4.js",
 			"js/visualizer/visualizer.js",
 			"js/visualizer/shader.js",
-			"js/effects.js",
 			"js/canvasResizer.js"
 		]
 		var head = document.getElementsByTagName('head')[0];
 		var apphtml = new XMLHttpRequest()
 		apphtml.open("GET", "app.html")
-		apphtml.addEventListener("loadend", function(data) {
-			for(var i = 0; i < scriptLinks.length ; i++) {
+		apphtml.addEventListener("load", function(data) {
+			// D3JS sometimes doesn't load, but effects.js requires it.
+			// We must wait for libs to load before we use them.
+			var appendPromise = new Promise(function(resolve, reject) {
+				for(var i = 0; i < scriptLinks.length ; i++) {
+					var s = document.createElement("script")
+					s.src = scriptLinks[i]
+					head.appendChild(s)
+				}
+
+				setTimeout(resolve, 1000)
+				resolve();
+			})
+			appendPromise.then(function() {
 				var s = document.createElement("script")
-				s.src = scriptLinks[i]
+				s.src = "js/effects.js"
 				head.appendChild(s)
-			}
+			})
 		})
+		
 		apphtml.send()
 	}
 </script>

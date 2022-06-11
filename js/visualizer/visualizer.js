@@ -6,6 +6,7 @@ var ANALYSISTYPE_FREQUENCY = 0;
 var ANALYSISTYPE_SONOGRAM = 1;
 var ANALYSISTYPE_3D_SONOGRAM = 2;
 var ANALYSISTYPE_WAVEFORM = 3;
+var ANALYSISTYPE_DECIBEL = 4;
 
 // The "model" matrix is the "world" matrix in Standard Annotations and Semantics
 var model = 0;
