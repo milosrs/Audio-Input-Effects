@@ -58,13 +58,9 @@
 	function loadScript() {
 		var scriptLinks = [
 			"http://cwilso.github.io/AudioContext-MonkeyPatch/AudioContextMonkeyPatch.js",
-			"js/visualizer/base.js",
-			"js/visualizer/events.js",
-			"js/visualizer/cameracontroller.js",
-			"js/visualizer/matrix4x4.js",
-			"js/visualizer/visualizer.js",
-			"js/visualizer/shader.js",
-			"js/canvasResizer.js"
+			"/js/visualizer/visualizer.js",
+			"js/canvasResizer.js",
+			"js/effects.js"
 		]
 		var head = document.getElementsByTagName('head')[0];
 		var apphtml = new XMLHttpRequest()
@@ -78,14 +74,6 @@
 					s.src = scriptLinks[i]
 					head.appendChild(s)
 				}
-
-				setTimeout(resolve, 1000)
-				resolve();
-			})
-			appendPromise.then(function() {
-				var s = document.createElement("script")
-				s.src = "js/effects.js"
-				head.appendChild(s)
 			})
 		})
 

@@ -75,10 +75,6 @@ function updateAnalysers(time) {
     rafID = window.requestAnimationFrame( updateAnalysers );
 }
 
-function changeAnalysisType(index) {
-    analyserView1.setAnalysisType(index)
-}
-
 var lpInputFilter=null;
 
 // this is ONLY because we have massive feedback without filtering out
@@ -189,15 +185,12 @@ function initAudio() {
     }
     irRRequest.send();
 
-    o3djs.require('o3djs.shader');
-
     analyser1 = audioContext.createAnalyser();
     analyser1.fftSize = 1024;
     analyser2 = audioContext.createAnalyser();
     analyser2.fftSize = 1024;
 
-    analyserView1 = new AnalyserView("view1");
-    analyserView1.initByteBuffer( analyser1 );
+    analyserView1 = new AnalyserView("meter");
 
     console.log(navigator.mediaDevices.getSupportedConstraints())
 
