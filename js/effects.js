@@ -5,7 +5,6 @@ var audioInput = null,
     effectInput = null,
     wetGain = null,
     dryGain = null,
-    outputMix = null,
     currentEffectNode = null,
     reverbBuffer = null,
     dtime = null,
@@ -47,7 +46,7 @@ var audioInput = null,
     btcrNormFreq = 1; // between 0.0 and 1.0
 
 var rafID = null;
-var analyser1;
+var analyser;
 var analyserView1;
 
 function convertToMono( input ) {
@@ -70,7 +69,7 @@ function cancelAnalyserUpdates() {
 }
 
 function updateAnalysers(time) {
-    analyserView1.doFrequencyAnalysis( analyser1 );
+    analyserView1.doFrequencyAnalysis( analyser );
 
     rafID = window.requestAnimationFrame( updateAnalysers );
 }
@@ -98,7 +97,7 @@ function toggleMono() {
 
     createLPInputFilter();
     lpInputFilter.connect(dryGain);
-    lpInputFilter.connect(analyser1);
+    lpInputFilter.connect(analyser);
     lpInputFilter.connect(effectInput);
 }
 
@@ -113,17 +112,12 @@ function gotStream(stream) {
         audioInput = lpInputFilter;
     }
 
-    outputMix = audioContext.createGain();
     dryGain = audioContext.createGain();
     wetGain = audioContext.createGain();
     effectInput = audioContext.createGain();
     audioInput.connect(dryGain);
-    audioInput.connect(analyser1);
+    audioInput.connect(analyser);
     audioInput.connect(effectInput);
-    dryGain.connect(outputMix);
-    wetGain.connect(outputMix);
-    outputMix.connect(audioContext.destination);
-    outputMix.connect(analyser2);
     crossfade(1.0);
     cancelAnalyserUpdates();
     updateAnalysers();
@@ -185,10 +179,10 @@ function initAudio() {
     }
     irRRequest.send();
 
-    analyser1 = audioContext.createAnalyser();
-    analyser1.fftSize = 1024;
-    analyser2 = audioContext.createAnalyser();
-    analyser2.fftSize = 1024;
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 1024;
+    analyser.minDecibels = -90;
+    analyser.maxDecibels = -10;
 
     analyserView1 = new AnalyserView("meter");
 
@@ -226,3 +220,7 @@ function crossfade(value) {
   dryGain.gain.value = gain1;
   wetGain.gain.value = gain2;
 }
+
+window.addEventListener('resize', function() {
+    analyserView1.calculateCanvasSize()
+})
