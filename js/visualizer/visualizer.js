@@ -67,6 +67,7 @@ AnalyserView = function(canvasElementID) {
     this.waveformShader = 0;
     this.sonogramShader = 0;
     this.sonogram3DShader = 0;
+    this.decibelShader = 0;
 
     // Background color
     this.backgroundColor = [0.1, 0.1, 0.1, 1.0];
@@ -224,6 +225,8 @@ AnalyserView.prototype.initGL = function() {
         function( shader ) {this.waveformShader = shader; }.bind(this));
   o3djs.shader.asyncLoadFromURL(gl, "shaders/common-vertex.shader", "shaders/sonogram-fragment.shader",
         function( shader ) {this.sonogramShader = shader; }.bind(this));
+  o3djs.shader.asyncLoadFromURL(gl, "shaders/decibel-vertex.shader", "shaders/decibel-fragment.shader",
+        function( shader ) {this.decibelShader = shader; }.bind(this));
 
   if (this.has3DVisualizer)
     o3djs.shader.asyncLoadFromURL(gl, "shaders/sonogram-vertex.shader", "shaders/sonogram-fragment.shader",
@@ -333,6 +336,8 @@ AnalyserView.prototype.drawGL = function() {
     if (!sonogramShader) return;
     var sonogram3DShader = this.sonogram3DShader;
     if (!sonogram3DShader) return;
+    var decibelShader = this.decibelShader;
+    if (!decibelShader) return;
 
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
@@ -386,6 +391,19 @@ AnalyserView.prototype.drawGL = function() {
         gl.uniform1f(sonogramShader.yoffsetLoc, yoffset / (TEXTURE_HEIGHT - 1));
         texCoordOffset = vboTexCoordOffset;
         break;
+
+    case ANALYSISTYPE_DECIBEL:
+        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+        decibelShader.bind();
+        vertexLoc = decibelShader.gPositionLoc;
+        texCoordLoc = decibelShader.gTexCoord0Loc;
+        decibelDataLoc = decibelShader.decibelDataLoc;
+        foregroundColorLoc = decibelShader.foregroundColorLoc;
+        backgroundColorLoc = decibelShader.backgroundColorLoc;
+        gl.uniform1f(yoffset, yoffset/(TEXTURE_HEIGHT - 1));
+        texCoordOffset = vboTexCoordOffset;
+        break;
+
 
     case ANALYSISTYPE_3D_SONOGRAM:
         gl.bindBuffer(gl.ARRAY_BUFFER, sonogram3DVBO);

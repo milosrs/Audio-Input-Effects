@@ -1,4 +1,3 @@
-// The common vertex shader used for the frequency and sonogram visualizations
 attribute vec3 gPosition;
 attribute vec2 gTexCoord0;
 
