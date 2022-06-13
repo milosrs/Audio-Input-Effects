@@ -10,10 +10,6 @@ var audioInput = null,
     dtime = null,
     dregen = null,
     lfo = null,
-    cspeed = null,
-    cdelay = null,
-    cdepth = null,
-    scspeed = null,
     scldelay = null,
     scrdelay = null,
     scldepth = null,
@@ -186,8 +182,6 @@ function initAudio() {
 
     analyserView1 = new AnalyserView("meter");
 
-    console.log(navigator.mediaDevices.getSupportedConstraints())
-
     navigator.mediaDevices.enumerateDevices()
     .then(function(deviceInfos) {
         var defaultDevice = gotSources(deviceInfos)
@@ -221,6 +215,16 @@ function crossfade(value) {
   wetGain.gain.value = gain2;
 }
 
+var controlsHidden = false;
+
 window.addEventListener('resize', function() {
     analyserView1.calculateCanvasSize()
+})
+
+window.addEventListener('keydown', function(e) {
+    if(e.key === 'h') {
+        controlsHidden = !controlsHidden;
+        this.document.getElementsByClassName('controls')[0].style.visibility = `${controlsHidden ? 'hidden' : 'visible'}`
+        console.log(this.document.getElementsByClassName('controls'))
+    }
 })

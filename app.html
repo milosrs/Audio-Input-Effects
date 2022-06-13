@@ -1,7 +1,22 @@
-<div>Input:
-    <select id="audioinput" onchange="changeInput(this.selectedIndex);">
-    </select>
-    Transitions: <input id="color1" type="color"/> <input id="color2" type="color"/> <input id="color3" type="color"/>
+<style>
+    .controls {
+        display:flex;
+        flex-direction: column;
+        min-height: 80px;
+        justify-content: space-between;
+    }
+</style>
+
+<div class="controls">
+    <span>
+        <span>Input:</span>
+        <select id="audioinput" onchange="changeInput(this.selectedIndex);"></select>
+    </span>
+    <span>
+        <span>Transitions:</span>
+        <input id="color1" type="color"/> <input id="color2" type="color"/> <input id="color3" type="color"/>
+    </span>
+    
 </div>
 
 <div id="arranger">
