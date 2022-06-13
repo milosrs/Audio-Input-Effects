@@ -43,7 +43,7 @@ var audioInput = null,
 
 var rafID = null;
 var analyser;
-var analyserView1;
+var analyserView;
 
 function convertToMono( input ) {
     var splitter = audioContext.createChannelSplitter(2);
@@ -65,7 +65,7 @@ function cancelAnalyserUpdates() {
 }
 
 function updateAnalysers(time) {
-    analyserView1.doFrequencyAnalysis( analyser );
+    analyserView.doFrequencyAnalysis( analyser );
 
     rafID = window.requestAnimationFrame( updateAnalysers );
 }
@@ -180,7 +180,7 @@ function initAudio() {
     analyser.minDecibels = -90;
     analyser.maxDecibels = -10;
 
-    analyserView1 = new AnalyserView("meter");
+    analyserView = new AnalyserView("meter");
 
     navigator.mediaDevices.enumerateDevices()
     .then(function(deviceInfos) {
@@ -214,17 +214,3 @@ function crossfade(value) {
   dryGain.gain.value = gain1;
   wetGain.gain.value = gain2;
 }
-
-var controlsHidden = false;
-
-window.addEventListener('resize', function() {
-    analyserView1.calculateCanvasSize()
-})
-
-window.addEventListener('keydown', function(e) {
-    if(e.key === 'h') {
-        controlsHidden = !controlsHidden;
-        this.document.getElementsByClassName('controls')[0].style.visibility = `${controlsHidden ? 'hidden' : 'visible'}`
-        console.log(this.document.getElementsByClassName('controls'))
-    }
-})
