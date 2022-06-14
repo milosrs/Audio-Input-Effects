@@ -2,13 +2,12 @@ function addColorToSpecturm() {
     var spectrum = document.getElementById('spectrum');
     var colorInput = document.createElement('input')
     colorInput.type = 'color';
-    colorInput.id = `color${colorInput.children.length}`
+    colorInput.id = `color${spectrum.children.length + 1}`
     
-    colorInput.onchange = function(e) {
-        analyserView.changeColorSpectrum(colorInput.id, e.target.value)
-    }
+    colorInput.onchange = analyserView.changeColorSpectrum
 
     spectrum.append(colorInput)
+    analyserView.initColorSpectrum()
 }
 
 // Window event handlers

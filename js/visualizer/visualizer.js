@@ -2,6 +2,8 @@ function extractSize(size, divider) {
     return Number.parseFloat(size.split('px')[0] / divider)
 }
 
+var that = null;
+
 class AnalyserView {
     constructor(meterID) {
         this.colorSpectrum = []
@@ -19,8 +21,11 @@ class AnalyserView {
         // 110dB is the loudness from which you'll go deaf if you're exposed to it for 30 minutes. Measured at Seahawks football game.
         this.maxDb = 110
         this.calculateCanvasSize()
+        this.initColorSpectrum()
+        this.setInitialChangeListeners()
         
         this.ctx = this.meter.getContext("2d")
+        that = this
     }
 
     calculateCanvasSize() {
@@ -46,27 +51,44 @@ class AnalyserView {
         this.draw(rms);
     }
 
-    initColorSpectrum() {
-        var spectrumElements = document.getElementById('spectrum');
-        var inputs = spectrumElements.childNodes
-
-        for(let i = 0; i < inputs.length; i++) {
-            this.colorSpectrum.push(inputs[i].value)
+    changeColorSpectrum(e) {
+        var index = Number.parseInt(e.target.id.split('color')[1]) - 1
+        if(index > that.colorSpectrum.length - 1) {
+            that.colorSpectrum.push(e.target.value)
+        } else {
+            that.colorSpectrum[index] = e.target.value
         }
 
-        console.log(this.colorSpectrum)
+        this.colorGradient = new Rainbow(that.colorSpectrum, 0, that.maxHeight)
     }
 
-    changeColorSpectrum(colorPickerId, value) {
-        var index = Number.parseInt(colorPickerId.split('color')[0]) - 1
+    initColorSpectrum() {
+        this.colorSpectrum = []
+        var spectrumElements = document.getElementById('spectrum');
+        var inputs = spectrumElements.children
 
-        if(index > this.colorSpectrum.length - 1) {
-            this.colorSpectrum.push(value)
-        } else {
-            this.colorSpectrum[index] = value
+        for(let i = 0; i < inputs.length; i++) {
+            if(inputs[i].getAttribute('type') === 'color') {
+                this.colorSpectrum.push(inputs[i].value)
+            }
         }
 
-        console.log(this.colorSpectrum)
+        this.colorGradient = new Rainbow(this.colorSpectrum, 0, this.maxHeight)
+    }
+
+    setInitialChangeListeners() {
+        var spectrumElements = document.getElementById('spectrum');
+        var inputs = spectrumElements.children
+
+        for(let i = 0; i < inputs.length; i++) {
+            if(inputs[i].getAttribute('type') === 'color') {
+                inputs[i].onchange = this.changeColorSpectrum
+            }
+        }
+
+        for(let i = 0; i < this.maxHeight; i++) {
+            console.log('CL: ', this.colorGradient.colorAt(i))
+        }
     }
 
     draw(db) {
