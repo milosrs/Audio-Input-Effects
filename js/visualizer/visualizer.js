@@ -7,6 +7,7 @@ var that = null;
 class AnalyserView {
     constructor(meterID) {
         this.colorSpectrum = []
+        this.supportedColors = []
         this.meter = document.getElementById(meterID)
         this.freqByteData = new Uint8Array()
     
@@ -20,11 +21,12 @@ class AnalyserView {
         this.rectHeight = 10;
         // 110dB is the loudness from which you'll go deaf if you're exposed to it for 30 minutes. Measured at Seahawks football game.
         this.maxDb = 110
+        this.ctx = this.meter.getContext("2d")
+
         this.calculateCanvasSize()
         this.initColorSpectrum()
         this.setInitialChangeListeners()
         
-        this.ctx = this.meter.getContext("2d")
         that = this
     }
 
@@ -54,26 +56,42 @@ class AnalyserView {
     changeColorSpectrum(e) {
         var index = Number.parseInt(e.target.id.split('color')[1]) - 1
         if(index > that.colorSpectrum.length - 1) {
-            that.colorSpectrum.push(e.target.value)
+            that.supportedColors.push(e.target.value)
         } else {
-            that.colorSpectrum[index] = e.target.value
+            that.supportedColors[index] = e.target.value
         }
 
-        this.colorGradient = new Rainbow(that.colorSpectrum, 0, that.maxHeight)
+        that.colorGradient = new Rainbow(that.supportedColors, 0, that.maxHeight)
+        that.setColorSpectrum(that)
     }
 
     initColorSpectrum() {
-        this.colorSpectrum = []
         var spectrumElements = document.getElementById('spectrum');
         var inputs = spectrumElements.children
 
         for(let i = 0; i < inputs.length; i++) {
             if(inputs[i].getAttribute('type') === 'color') {
-                this.colorSpectrum.push(inputs[i].value)
+                this.supportedColors.push(inputs[i].value)
             }
         }
 
-        this.colorGradient = new Rainbow(this.colorSpectrum, 0, this.maxHeight)
+        this.colorGradient = new Rainbow(this.supportedColors, 0, this.maxHeight)
+        this.setColorSpectrum(this)
+    }
+
+    setColorSpectrum(target) {
+        target.colorSpectrum = [];
+
+        for(let i = 0; i < target.maxHeight; i++) {
+            var color = `#${target.colorGradient.colourAt(i)}`
+            if(target.colorSpectrum.indexOf(color) == -1 && color != undefined) {
+                target.colorSpectrum.push(color)
+            }
+        }
+
+        if(!controlsHidden) {
+            target.previewSpectrum()
+        }
     }
 
     setInitialChangeListeners() {
@@ -82,25 +100,49 @@ class AnalyserView {
 
         for(let i = 0; i < inputs.length; i++) {
             if(inputs[i].getAttribute('type') === 'color') {
+                console.log(inputs[i])
                 inputs[i].onchange = this.changeColorSpectrum
             }
         }
+    }
 
-        for(let i = 0; i < this.maxHeight; i++) {
-            console.log('CL: ', this.colorGradient.colorAt(i))
+    previewSpectrum() {
+        this.ctx.clearRect(0, 5, this.maxWidth, 10)
+        for(let i = 0; i < this.colorSpectrum.length; i++) {
+            this.ctx.fillStyle = this.colorSpectrum[i]
+            this.ctx.fillRect(3*i, 0, 3, 3)
         }
     }
 
+    createGradient(x, y, step) {
+        y = this.maxHeight - y
+
+        var startColor = this.colorSpectrum[y]
+        var midColor = this.colorSpectrum[y + step]
+        var endColor = this.colorSpectrum[y + this.rectHeight]
+
+        var gradient = this.ctx.createLinearGradient(x, y, x + this.barWidth, y + this.rectHeight)
+        gradient.addColorStop(0, startColor)
+        gradient.addColorStop(0.5, midColor)
+        gradient.addColorStop(1, endColor)
+
+        return gradient
+    }
+    
     draw(db) {
-        this.ctx.clearRect(0, 0, this.maxWidth, this.maxHeight)
-        this.ctx.fillStyle = 'skyblue'
+        if(!controlsHidden) {
+            this.ctx.clearRect(0, 20, this.maxWidth, this.maxHeight)
+        } else {
+            this.ctx.clearRect(0, 0, this.maxWidth, this.maxHeight)
+        }
         var rectPercent = db / 120
         var rectNum = Number.parseInt(this.maxRectNum * rectPercent)
         for(let i = 0; i < this.barsNum; i++) {
             var x = (this.barGap + this.barWidth) * i
 
             for (let j = 0; j < rectNum; j++) {
-                var y = this.maxHeight - (this.rectGap + this.rectHeight) * (j + 3)    
+                var y = this.maxHeight - (this.rectGap + this.rectHeight) * (j + 3)
+                this.ctx.fillStyle = this.createGradient(x, y, 5)
                 this.ctx.fillRect(x, y, this.barWidth, this.rectHeight)
             }
         }

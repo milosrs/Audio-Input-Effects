@@ -18,9 +18,13 @@ window.addEventListener('resize', function() {
 })
 
 window.addEventListener('keydown', function(e) {
-    if(e.key === 'h') {
+    if(e.key === 'c') {
         controlsHidden = !controlsHidden;
         this.document.getElementsByClassName('controls')[0].style.visibility = `${controlsHidden ? 'hidden' : 'visible'}`
         console.log(this.document.getElementsByClassName('controls'))
+    }
+
+    if(!controlsHidden) {
+        analyserView.previewSpectrum()
     }
 })

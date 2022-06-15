@@ -4,18 +4,45 @@
 	<title>Live input effects</title>
 
 	<style>
+	html, body {
+		height: 100%;
+		margin: 0;
+		padding: 0;
+	}
+	img {
+		padding: 0;
+		position:absolute;
+		z-index: -3;
+		display: block;
+		margin: 0 auto;
+		height: 100%;
+		width: 100%;
+	}
 	body { font: 14pt Arial, sans-serif; background: #1a1a1a; color: white; }
 	select { font: 14pt Arial, sans-serif; }
 	div#controls div { display:none; border: 1px solid darkgray; border-radius: 5px; padding: 10px; width: 728px;}
 	div#controls div.display { display: block; }
 	#controls { padding-top: 24px;}
 	#effectMix { padding-top: 12px;}
+	#play {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		width: 100%;
+		height: 100%;
+	}
 
+	#play > button {
+		width: 200px;
+		height: 40px;
+		font-size: 18px;
+	}
 	</style>
 </head>
 <body>
+	<img id="background" src="./img/sarahbackground.png" width=""/>
 	<div id="play">
-		<button onclick="onPlay()">Press me to load audio</button>
+		<button onclick="onPlay()">Press me to start</button>
 	</div>
 	<div id="app" hidden></div>
 </div>
@@ -37,7 +64,7 @@
 
 	function onPlay(e) {
 		mustUseGesture = false
-		document.getElementById("play").hidden = true
+		document.getElementById("play").remove()
 		document.getElementById("app").hidden = false
 
 		loadScript()

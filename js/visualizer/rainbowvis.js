@@ -20,14 +20,14 @@ class Rainbow {
 		} else {
 			var increment = (this.maxNum - this.minNum)/(spectrum.length - 1);
 			
-			for (var i = 1; i < spectrum.length - 1; i++) {
+			for (var i = 0; i < spectrum.length - 1; i++) {
 				var colourGradient = new ColourGradient(
 					spectrum[i], 
 					spectrum[i + 1],
 					this.minNum + increment * (i), 
 					this.minNum + increment * (i + 1)
 				);
-				this.gradients[i - 1] = colourGradient; 
+				this.gradients.push(colourGradient); 
 			}
 
 			this.colours = spectrum;
