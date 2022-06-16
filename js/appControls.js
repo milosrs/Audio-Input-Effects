@@ -15,6 +15,7 @@ function onPlay(e) {
 
         if(apphtml.readyState === XMLHttpRequest.DONE) {
             setTimeout(function() {
+                loadColors()
                 initAudio()
             }, 400)
         }
@@ -22,22 +23,70 @@ function onPlay(e) {
     apphtml.send()
 }
 
-function addColorToSpecturm() {
+function loadColors() {
+    var savedScheme = JSON.parse(window.localStorage.getItem(schemeKey))
+
+    if(savedScheme) {
+        for(let i = 0; i < savedScheme.length; i++) {
+            var colorEl = document.getElementById(`color${i + 1}`)
+            if(colorEl) {
+                colorEl.setAttribute('value', savedScheme[i])
+                colorEl.value = savedScheme[i]
+            } else {
+                addColorToSpecturm(savedScheme[i])
+            }
+        }
+    }
+}
+
+function addColorToSpecturm(color) {
     var spectrum = document.getElementById('spectrum');
     var colorInput = document.createElement('input')
     colorInput.type = 'color';
     colorInput.id = `color${spectrum.children.length + 1}`
-    
-    colorInput.onchange = analyserView.changeColorSpectrum
+
+    if(color) {
+        colorInput.setAttribute('value', color)
+        colorInput.value = color
+    }
+
+    if(analyserView) {
+        analyserView.initColorSpectrum()
+        colorInput.onchange = analyserView.changeColorSpectrum
+    }
 
     spectrum.append(colorInput)
-    analyserView.initColorSpectrum()
 }
 
 function saveColorScheme() {
-    window.localStorage.setItem(schemeKey, JSON.stringify(analyserView.colorSpectrum))
-    // window.localStorage.setItem(pickedColors, JSON.stringify(analyserView.))
+    var spectrum = document.getElementById('spectrum');
+    var colors = []
+
+    console.log(spectrum.children)
+    for(let i = 0; i < spectrum.childElementCount; i++) {
+        colors.push(spectrum.children[i].value)
+    }
+
+    window.localStorage.setItem(schemeKey, JSON.stringify(colors))
     console.log("Scheme saved: ", JSON.parse(window.localStorage.getItem(schemeKey)))
+}
+
+function resetScheme() {
+    var els = [
+        "#ff0000",
+        "#008000",
+        "#0000ff"
+    ]
+
+    window.localStorage.removeItem(schemeKey)
+    var spectrum = document.getElementById('spectrum');
+    for(let i = 0; i < spectrum.childElementCount; i++) {
+        spectrum.removeChild(spectrum.firstElementChild)
+    }
+
+    spectrum.removeChild(spectrum.lastElementChild)
+
+    location.reload();
 }
 
 // Window event handlers

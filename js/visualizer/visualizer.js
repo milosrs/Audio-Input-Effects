@@ -22,7 +22,7 @@ class AnalyserView {
 
         this.calculateCanvasSize()
 
-        this.numberOfColors = this.maxHeight * 2
+        this.numberOfColors = this.maxHeight
         this.initColorSpectrum()
         this.setInitialChangeListeners()
         
@@ -125,9 +125,9 @@ class AnalyserView {
     createGradient(x, y, step) {
         y = this.maxHeight - y
 
-        var startColor = this.colorSpectrum[y]
-        var midColor = this.colorSpectrum[y + step]
-        var endColor = this.colorSpectrum[y + this.rectHeight] || this.colorGradient[this.maxHeight]
+        var startColor = this.colorSpectrum[y] || this.colorSpectrum[this.colorSpectrum.length - 1]
+        var midColor = this.colorSpectrum[y + step] || this.colorSpectrum[this.colorSpectrum.length - 1]
+        var endColor = this.colorSpectrum[y + this.rectHeight] || this.colorSpectrum[this.colorSpectrum.length - 1]
 
         var gradient = this.ctx.createLinearGradient(x, y, x + this.barWidth, y + this.rectHeight)
         gradient.addColorStop(0, startColor)
