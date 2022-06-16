@@ -8,6 +8,7 @@ class AnalyserView {
     constructor(meterID) {
         this.colorSpectrum = []
         this.supportedColors = []
+        this.barErrors = {}
         this.meter = document.getElementById(meterID)
         this.freqByteData = new Uint8Array()
     
@@ -24,6 +25,8 @@ class AnalyserView {
         this.ctx = this.meter.getContext("2d")
 
         this.calculateCanvasSize()
+
+        this.numberOfColors = this.maxHeight * 2
         this.initColorSpectrum()
         this.setInitialChangeListeners()
         
@@ -61,7 +64,7 @@ class AnalyserView {
             that.supportedColors[index] = e.target.value
         }
 
-        that.colorGradient = new Rainbow(that.supportedColors, 0, that.maxHeight)
+        that.colorGradient = new Rainbow(that.supportedColors, 0, that.numberOfColors)
         that.setColorSpectrum(that)
     }
 
@@ -75,14 +78,14 @@ class AnalyserView {
             }
         }
 
-        this.colorGradient = new Rainbow(this.supportedColors, 0, this.maxHeight)
+        this.colorGradient = new Rainbow(this.supportedColors, 0, this.numberOfColors)
         this.setColorSpectrum(this)
     }
 
     setColorSpectrum(target) {
         target.colorSpectrum = [];
 
-        for(let i = 0; i < target.maxHeight; i++) {
+        for(let i = 0; i < target.numberOfColors; i++) {
             var color = `#${target.colorGradient.colourAt(i)}`
             if(target.colorSpectrum.indexOf(color) == -1 && color != undefined) {
                 target.colorSpectrum.push(color)
@@ -100,17 +103,25 @@ class AnalyserView {
 
         for(let i = 0; i < inputs.length; i++) {
             if(inputs[i].getAttribute('type') === 'color') {
-                console.log(inputs[i])
                 inputs[i].onchange = this.changeColorSpectrum
             }
         }
     }
 
     previewSpectrum() {
+        var x = 0
+        var y = 0
         this.ctx.clearRect(0, 5, this.maxWidth, 10)
         for(let i = 0; i < this.colorSpectrum.length; i++) {
             this.ctx.fillStyle = this.colorSpectrum[i]
-            this.ctx.fillRect(3*i, 0, 3, 3)
+            this.ctx.fillRect(x, y, 3, 3)
+
+            x = 3 * i
+
+            if (x > this.maxWidth) {
+                x = 0;
+                y = 10;
+            }
         }
     }
 
@@ -128,6 +139,43 @@ class AnalyserView {
 
         return gradient
     }
+
+    createErrors(db, maxErr, i) {
+        if(db < maxErr) {
+            if (this.barErrors[i]) {
+                clearInterval(this.barErrors[i].interval)
+            }
+            this.barErrors[i] = null;
+            return
+        }
+
+        var createOscilationTime = function() {
+            return Math.random() * 200 + 300
+        }
+
+        var createError = function(currentValue) {
+            var isNegative = Math.random() < 0.5
+
+            if(currentValue) {
+                return currentValue + isNegative ? -Math.floor(Math.random() * 3) : Math.floor(Math.random() * 3);
+            }
+
+            return Math.floor(Math.random() * (isNegative ? -maxErr : maxErr))
+        }
+
+        if(!this.barErrors[i]) {
+            var err = createError()
+            this.barErrors[i] = {
+                err,
+            }
+
+            var intervalId = setInterval(function() {
+                that.barErrors[i].err = createError(that.barErrors[i].err)
+            }, createOscilationTime())
+
+            this.barErrors[i].interval = intervalId
+        }
+    }
     
     draw(db) {
         if(!controlsHidden) {
@@ -138,9 +186,11 @@ class AnalyserView {
         var rectPercent = db / 120
         var rectNum = Number.parseInt(this.maxRectNum * rectPercent)
         for(let i = 0; i < this.barsNum; i++) {
+            this.createErrors(db, Math.floor(Math.random() * 5), i)
             var x = (this.barGap + this.barWidth) * i
+            var colRectNum = this.barErrors[i] ? rectNum + this.barErrors[i].err : rectNum
 
-            for (let j = 0; j < rectNum; j++) {
+            for (let j = 0; j < colRectNum; j++) {
                 var y = this.maxHeight - (this.rectGap + this.rectHeight) * (j + 3)
                 this.ctx.fillStyle = this.createGradient(x, y, 5)
                 this.ctx.fillRect(x, y, this.barWidth, this.rectHeight)

@@ -27,6 +27,7 @@ class Rainbow {
 					this.minNum + increment * (i), 
 					this.minNum + increment * (i + 1)
 				);
+
 				this.gradients.push(colourGradient); 
 			}
 
