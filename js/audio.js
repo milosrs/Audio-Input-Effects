@@ -204,8 +204,6 @@ function initAudio() {
     })
 }
 
-initAudio()
-
 function crossfade(value) {
   // equal-power crossfade
   var gain1 = Math.cos(value * 0.5*Math.PI);

@@ -6,8 +6,13 @@
         justify-content: space-between;
     }
 
-    #meter {
+    #meterHolder {
+        display: flex;
+        justify-content: center;
         margin-left: 20px;
+        margin-right: 20px;
+        width: calc(100% - 40px);
+        height: 90%;
     }
 </style>
 
@@ -25,10 +30,11 @@
         </span>
         <span>
             <button type="button" onclick="addColorToSpecturm()">+</button>
+            <button type="button" onclick="saveColorScheme()">Save color scheme</button>
         </span>
     </span>
-    
 </div>
 
-<div id="arranger">
-<canvas id="meter" width="1280" height="720"></canvas><br>
+<div id="meterHolder">
+    <canvas id="meter" width="1280" height="720"></canvas><br>
+</div>

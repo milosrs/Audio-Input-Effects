@@ -1,7 +1,3 @@
-function extractSize(size, divider) {
-    return Number.parseFloat(size.split('px')[0] / divider)
-}
-
 var that = null;
 
 class AnalyserView {
@@ -34,15 +30,16 @@ class AnalyserView {
     }
 
     calculateCanvasSize() {
-        var w = `${window.innerWidth - 50}px`
-        var h = `${window.innerHeight - 180}px`
-        this.meter.style.setProperty('height', h)
-        this.meter.style.setProperty('width', w)
+        var canvasHolder = document.getElementById('meterHolder');
+        this.meter.setAttribute('width', canvasHolder.offsetWidth)
+        this.meter.setAttribute('height', canvasHolder.offsetHeight)
     
-        this.maxWidth = extractSize(this.meter.style.width, 1)
-        this.maxHeight = extractSize(this.meter.style.height, 1)
+        this.maxWidth = canvasHolder.offsetWidth
+        this.maxHeight = canvasHolder.offsetHeight
         this.maxRectNum = this.maxHeight / (this.rectHeight + this.rectGap)
         this.barsNum = Number.parseInt(this.maxWidth / (this.barWidth + this.barGap))
+
+        console.log(this.maxWidth, this.maxHeight, this.maxRectNum, this.barsNum)
     }
 
     doFrequencyAnalysis(analyser) {
@@ -130,7 +127,7 @@ class AnalyserView {
 
         var startColor = this.colorSpectrum[y]
         var midColor = this.colorSpectrum[y + step]
-        var endColor = this.colorSpectrum[y + this.rectHeight]
+        var endColor = this.colorSpectrum[y + this.rectHeight] || this.colorGradient[this.maxHeight]
 
         var gradient = this.ctx.createLinearGradient(x, y, x + this.barWidth, y + this.rectHeight)
         gradient.addColorStop(0, startColor)
@@ -183,10 +180,11 @@ class AnalyserView {
         } else {
             this.ctx.clearRect(0, 0, this.maxWidth, this.maxHeight)
         }
+
         var rectPercent = db / 120
         var rectNum = Number.parseInt(this.maxRectNum * rectPercent)
         for(let i = 0; i < this.barsNum; i++) {
-            this.createErrors(db, Math.floor(Math.random() * 5), i)
+            this.createErrors(db, Math.floor(Math.random() * 10), i)
             var x = (this.barGap + this.barWidth) * i
             var colRectNum = this.barErrors[i] ? rectNum + this.barErrors[i].err : rectNum
 
@@ -197,10 +195,13 @@ class AnalyserView {
             }
         }
 
+
         if(!controlsHidden) {
             this.ctx.fillStyle = 'red'
             this.ctx.font = "12px Arial";
             this.ctx.fillText(`dB: ${db}`, 30, 60)
+
+            this.ctx.fillText(`Canvas Sizes: ${this.maxWidth} - ${this.maxHeight}`, 300, 60)
         }
     }
 }

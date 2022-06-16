@@ -9,7 +9,7 @@
 		margin: 0;
 		padding: 0;
 	}
-	img {
+	#background {
 		padding: 0;
 		position:absolute;
 		z-index: -3;
@@ -17,6 +17,18 @@
 		margin: 0 auto;
 		height: 100%;
 		width: 100%;
+	}
+	#logo {
+		padding: 0;
+		position: absolute;
+		z-index: -2;
+		display: block;
+		margin: 0 auto;
+		height: 40%;
+		width: 40%;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
 	}
 	body { font: 14pt Arial, sans-serif; background: #1a1a1a; color: white; }
 	select { font: 14pt Arial, sans-serif; }
@@ -38,70 +50,22 @@
 		font-size: 18px;
 	}
 	</style>
+	
+	<script src="http://cwilso.github.io/AudioContext-MonkeyPatch/AudioContextMonkeyPatch.js"></script>
+	<script src="/js/visualizer/rainbowvis.js"></script>
+	<script src="js/appControls.js"></script>
+	<script src="js/audio.js"></script>
 </head>
 <body>
 	<img id="background" src="./img/sarahbackground.png" width=""/>
+	<img id="logo" src="./img/Sarahlogo.png"/>
 	<div id="play">
 		<button onclick="onPlay()">Press me to start</button>
 	</div>
 	<div id="app" hidden></div>
 </div>
-<!--
-      <button onclick="this.innerText = toggleSample();">play</button>
-  -->
 </div>
-<script>
-	var mustUseGesture = true
-
-	function loadScripts() {
-		var head = document.getElementsByTagName('head')[0];
-		var script = document.createElement('script');
-		script.type = 'text/javascript';
-		script.src = url;
-
-		head.appendChild(script);
-	}
-
-	function onPlay(e) {
-		mustUseGesture = false
-		document.getElementById("play").remove()
-		document.getElementById("app").hidden = false
-
-		loadScript()
-
-		var apphtml = new XMLHttpRequest()
-		apphtml.open("GET", "app.html")
-		apphtml.addEventListener("loadend", function(data) {
-			document.getElementsByTagName('body')[0].insertAdjacentHTML('beforeend', data.srcElement.response)
-		})
-		apphtml.send()
-	}
-
-	function loadScript() {
-		var scriptLinks = [
-			"/js/visualizer/rainbowvis.js",
-			"http://cwilso.github.io/AudioContext-MonkeyPatch/AudioContextMonkeyPatch.js",
-			"/js/visualizer/visualizer.js",
-			"js/appControls.js",
-			"js/audio.js",
-		]
-		var head = document.getElementsByTagName('head')[0];
-		var apphtml = new XMLHttpRequest()
-		apphtml.open("GET", "app.html")
-		apphtml.addEventListener("load", function(data) {
-			// D3JS sometimes doesn't load, but effects.js requires it.
-			// We must wait for libs to load before we use them.
-			var appendPromise = new Promise(function(resolve, reject) {
-				for(var i = 0; i < scriptLinks.length ; i++) {
-					var s = document.createElement("script")
-					s.src = scriptLinks[i]
-					head.appendChild(s)
-				}
-			})
-		})
-
-		apphtml.send()
-	}
-</script>
 </body>
 </html>
+
+<script src="/js/visualizer/visualizer.js"></script>
